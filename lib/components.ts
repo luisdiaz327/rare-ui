@@ -989,6 +989,91 @@ export function Demo() {
   <button className="rounded-2xl bg-card p-4">Nice work</button>
 </EmojiReaction>`,
   },
+  {
+    name: "Notification bell",
+    href: "/components/notificationbell",
+    registry: "notification-bell",
+    description: "An iOS-style notification bell with an unread count badge.",
+    source: `${REGISTRY_HOMEPAGE}/blob/main/components/ui/notification-bell.tsx`,
+    dependencies: [
+      {
+        name: "motion",
+        icon: createElement(MotionIcon, { className: "h-4 w-4" }),
+      },
+      { name: "@radix-ui/react-slot" },
+    ],
+    interaction:
+      "Press plus to add a notification, minus to clear one. The bell swings when one lands and the count rolls to the new number. Add a few fast and it swings harder. The badge shrinks away at zero.",
+    props: [
+      {
+        name: "count",
+        type: "number",
+        default: "0",
+        description:
+          "Unread total on the badge. The badge is hidden at 0, and fractional or negative values are floored to it.",
+      },
+      {
+        name: "max",
+        type: "number",
+        default: "99",
+        description:
+          "Highest number shown. Anything above it displays as the max followed by a plus.",
+      },
+      {
+        name: "variant",
+        type: '"count" | "dot"',
+        default: '"count"',
+        options: ["count", "dot"],
+        description:
+          "Whether the badge shows the number or a plain dot. The dot appears and leaves on the same counts.",
+      },
+      {
+        name: "size",
+        type: "number",
+        default: "48",
+        description:
+          "Diameter of the button in pixels. The bell, badge, and digits are all fractions of it.",
+      },
+      {
+        name: "color",
+        type: '"red" | "orange" | "green" | "blue" | "violet"',
+        default: '"red"',
+        options: ["red", "orange", "green", "blue", "violet"],
+        control: "swatch",
+        optionColors: {
+          red: "#FF3B30",
+          orange: "#FF9500",
+          green: "#34C759",
+          blue: "#007AFF",
+          violet: "#AF52DE",
+        },
+        description:
+          "Badge color, from the Apple system palette. Each one swaps to its dark mode variant with the theme.",
+      },
+      {
+        name: "asChild",
+        type: "boolean",
+        default: "false",
+        description:
+          "Uses your own child as the trigger instead of the built-in button, so the badge can sit on an avatar or a nav item. Your element should be round for the badge to line up, and the bell swing only runs on the built-in button.",
+      },
+      {
+        name: "className",
+        type: "string",
+        description: "Extra classes merged onto the root element.",
+      },
+    ],
+    usage: `import { NotificationBell } from "@/components/ui/notification-bell"
+
+export function Demo() {
+  return <NotificationBell count={8} />
+}
+
+// or wrap it in your own menu trigger
+<DropdownMenuTrigger asChild>
+  <NotificationBell count={8} />
+</DropdownMenuTrigger>`,
+  },
   // {
   //   name: "Family drawer",
   //   href: "/components/familydrawer",
