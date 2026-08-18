@@ -1060,7 +1060,8 @@ export function Demo() {
       {
         name: "className",
         type: "string",
-        description: "Extra classes merged onto the root element.",
+        description:
+          "Extra classes merged onto the root element. Sizing is set inline from the size prop, so a width or height class here will not take effect.",
       },
     ],
     usage: `import { NotificationBell } from "@/components/ui/notification-bell"

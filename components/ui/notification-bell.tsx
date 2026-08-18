@@ -20,7 +20,6 @@ import { cn } from "@/lib/utils";
 const SURFACE = "bg-[#F4F4F9] dark:bg-[#262626]";
 const GLYPH = "text-[#868593] dark:text-[#9B9AA7]";
 
-// apple ships a separate system color for dark mode, the light one goes muddy on #262626
 const COLORS = {
   red: "bg-[#FF3B30] dark:bg-[#FF453A]",
   orange: "bg-[#FF9500] dark:bg-[#FF9F0A]",
@@ -29,16 +28,16 @@ const COLORS = {
   violet: "bg-[#AF52DE] dark:bg-[#BF5AF2]",
 } as const;
 
-// every measurement is a fraction of the size prop, so one number scales the whole thing
+// all sizes are a fraction of the size prop
 const ICON = 0.56;
 const BADGE = 0.38;
 const DOT = 0.22;
 const FONT = 0.21;
 const PAD = 0.09;
-// how far along the radius the badge center sits, 1 would park it exactly on the rim
+// how far out the badge sits, 1 puts it right on the edge
 const ORBIT = 0.9;
 
-// damping ratio near 0.34, so it rings for about three visible swings before settling
+// low damping so it keeps swinging for a bit
 const SWING_SPRING = {
   type: "spring",
   stiffness: 220,
@@ -51,14 +50,14 @@ const COLUMN_SPRING = { stiffness: 400, damping: 30, mass: 0.9 };
 const ENTER_SPRING = { type: "spring", stiffness: 600, damping: 20 } as const;
 const FADE = { duration: 0.15 } as const;
 
-// degrees per second, the bell is struck rather than dragged to an angle
+// degrees per second
 const IMPULSE = 500;
 const MAX_VELOCITY = 900;
 const BURST = 5;
 const CLAPPER_SWEEP = 13;
 const CLAPPER_VELOCITY = 450;
 
-// tiles rendered each side of a column, and the furthest it may lag before snapping closer
+// how many digits to keep above and below, and how far behind the spring can get
 const WINDOW = 3;
 const LAG = 2;
 
@@ -71,7 +70,7 @@ function badgeMetrics(size: number, dot: boolean) {
   const side = size * (dot ? DOT : BADGE);
   return {
     side,
-    // trigonometry places the badge center on the circle, so the tuck holds at any size
+    // puts the badge on the circle so it lines up at any size
     inset: size / 2 - (ORBIT * size * Math.SQRT1_2) / 2 - side / 2,
   };
 }
@@ -79,7 +78,7 @@ function badgeMetrics(size: number, dot: boolean) {
 function useBellRing(total: number, reduced: boolean) {
   const swing = useMotionValue(0);
   const swingVelocity = useVelocity(swing);
-  // the clapper answers the dome's speed, so it trails and overshoots on its own
+  // clapper follows the bell's speed, so it lags behind on its own
   const clapperLag = useTransform(
     swingVelocity,
     [-CLAPPER_VELOCITY, 0, CLAPPER_VELOCITY],
@@ -97,7 +96,7 @@ function useBellRing(total: number, reduced: boolean) {
 
     const weight = 0.7 + (0.6 * Math.min(delta, BURST)) / BURST;
     const moving = swing.getVelocity();
-    // shove it the way it is already traveling, the way you push someone on a swing
+    // push it the way it is already moving so it swings harder
     const along = moving > 1 ? 1 : -1;
 
     ringing.current = animate(swing, 0, {
@@ -127,7 +126,7 @@ function BellIcon({
       aria-hidden
       width={side}
       height={side}
-      // the dome hangs from its crown, swinging from the box center reads as a wobble
+      // the bell hangs from the top, spinning from the middle looks wrong
       style={{ rotate: swing, transformOrigin: "50% 12%" }}
     >
       <path
@@ -148,14 +147,14 @@ function BellIcon({
   );
 }
 
-// floor(total / 10^place) only moves the way the count moved, so direction comes free
+// this only moves the way the count moved, so the digits roll the right way
 function DigitColumn({ value, reduced }: { value: number; reduced: boolean }) {
   const position = useSpring(value, COLUMN_SPRING);
   const y = useTransform(position, (p) => `${-p * 100}%`);
 
   useEffect(() => {
     const gap = value - position.get();
-    // a big jump would otherwise travel past the rendered tiles and flash blank
+    // on a big jump, move it closer first so there are still digits to show
     if (Math.abs(gap) > LAG) position.jump(value - Math.sign(gap) * LAG);
     if (reduced) position.jump(value);
     else position.set(value);
@@ -208,7 +207,7 @@ function CountBadge({
       {total > 0 && (
         <motion.span
           key="badge"
-          // motion never gates layout projection on the media query, only its own animations
+          // motion does not turn layout animation off for reduced motion, so we do it here
           layout={!reduced}
           aria-hidden
           className={cn(
@@ -231,7 +230,7 @@ function CountBadge({
           {!dot && (
             <span
               className="flex font-semibold leading-none tracking-tight text-white"
-              // the 1ch columns only line up on tabular figures
+              // digits need the same width or the columns shift
               style={{ fontVariantNumeric: "tabular-nums" }}
             >
               {clamped
@@ -286,7 +285,7 @@ export function NotificationBell({
 }: NotificationBellProps) {
   const reduced = useReducedMotion() ?? false;
   const total = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0;
-  // rings off the displayed total, so a fractional or negative count cannot trigger it
+  // use the total so a weird count cannot ring the bell
   const { swing, clapper } = useBellRing(total, reduced);
 
   const badge = (
@@ -300,8 +299,9 @@ export function NotificationBell({
     />
   );
 
+  // this is also the button label, so the count gets read out when it changes
   const label = (
-    <span className="sr-only">
+    <span role="status" className="sr-only">
       {total > 0 ? `Notifications, ${total} unread` : "Notifications"}
     </span>
   );
