@@ -192,6 +192,20 @@
           "type": "registry:ui"
         }
       ]
+    },
+    {
+      "name": "notification-bell",
+      "type": "registry:ui",
+      "title": "Notification Bell",
+      "description": "An iOS-style notification bell with an unread count badge.",
+      "dependencies": ["motion", "@radix-ui/react-slot"],
+      "registryDependencies": ["utils"],
+      "files": [
+        {
+          "path": "components/ui/notification-bell.tsx",
+          "type": "registry:ui"
+        }
+      ]
     }
   ]
 }
